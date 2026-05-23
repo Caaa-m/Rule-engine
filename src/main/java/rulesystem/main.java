@@ -39,15 +39,12 @@ public class Main {
             program = parser.parse();
         }
 
-        // Construir estado inicial y tomar snapshot antes de ejecutar
         State state = parseState(stateText);
         State initialState = snapshotState(state);
 
-        // Ejecutar intérprete
         Interpreter interpreter = new Interpreter();
         interpreter.execute(program, state);
 
-        // Análisis estático con el estado inicial
         StaticAnalyzer analyzer = new StaticAnalyzer();
         analyzer.analyze(program, initialState);
     }
@@ -90,7 +87,7 @@ public class Main {
                         int value = Integer.parseInt(parts[1].trim());
                         state.setVariable(varName, value);
                     } catch (NumberFormatException e) {
-                        System.err.println("Warning: valor inválido en: " + line);
+                        System.err.println("Warning: invalid value in line: " + line);
                     }
                 }
             } else {
@@ -100,7 +97,6 @@ public class Main {
         return state;
     }
 
-    /** Copia el estado inicial (facts + variables) antes de que el intérprete lo modifique */
     private static State snapshotState(State original) {
         State copy = new State();
         for (String fact : original.getActiveFacts()) copy.addFact(fact);
@@ -108,64 +104,5 @@ public class Main {
             copy.setVariable(entry.getKey(), entry.getValue());
         }
         return copy;
-    }
-
-    // Lee todo stdin hasta EOF
-    private static String readFromStdin() throws IOException {
-        StringBuilder sb = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line).append("\n");
-        }
-        return sb.toString();
-    }
-
-    // Líneas que empiezan con "rule" o "if" son reglas, todo lo demás es estado
-    private static String[] splitInputByKeyword(String input) {
-        StringBuilder rulesBuilder = new StringBuilder();
-        StringBuilder stateBuilder = new StringBuilder();
-
-        for (String line : input.split("\n")) {
-            String trimmed = line.trim();
-            if (trimmed.isEmpty()) continue;
-
-            if (trimmed.startsWith("rule ") || trimmed.startsWith("rule\t")
-                    || trimmed.startsWith("if ") || trimmed.startsWith("if\t")) {
-                rulesBuilder.append(trimmed).append("\n");
-            } else {
-                stateBuilder.append(trimmed).append("\n");
-            }
-        }
-
-        return new String[]{rulesBuilder.toString(), stateBuilder.toString()};
-    }
-
-    // "id = integer" → variable, "id" solo → fact activo
-    private static State parseState(String stateText) {
-        State state = new State();
-        if (stateText == null || stateText.trim().isEmpty()) return state;
-
-        for (String line : stateText.split("\n")) {
-            line = line.trim();
-            if (line.isEmpty()) continue;
-
-            if (line.contains("=")) {
-                String[] parts = line.split("=", 2);
-                if (parts.length == 2) {
-                    String varName = parts[0].trim();
-                    try {
-                        int value = Integer.parseInt(parts[1].trim());
-                        state.setVariable(varName, value);
-                    } catch (NumberFormatException e) {
-                        System.err.println("Warning: valor inválido en: " + line);
-                    }
-                }
-            } else {
-                state.addFact(line);
-            }
-        }
-
-        return state;
     }
 }
