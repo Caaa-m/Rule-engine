@@ -1,6 +1,6 @@
 package rulesystem.analyzer;
-
 import rulesystem.ast.Program;
+import rulesystem.interpreter.State;
 
 public class StaticAnalyzer {
 
@@ -14,9 +14,9 @@ public class StaticAnalyzer {
         this.inactiveRuleDetector = new InactiveRuleDetector();
     }
 
-    public void analyze(Program program) {
+    public void analyze(Program program, State initialState) {
         conflictDetector.detect(program);
         redundancyDetector.detect(program);
-        inactiveRuleDetector.detect(program);
+        inactiveRuleDetector.detect(program, initialState);
     }
 }
