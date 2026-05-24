@@ -59,7 +59,7 @@ public class Lexer {
         if (c == '=') { advance(); return new Token(TokenType.EQ, "=", sl, sc); }
         if (c == ':') { advance(); return new Token(TokenType.COLON, ":", sl, sc); }
         if (Character.isDigit(c)) return readNumber(sl, sc);
-        if (Character.isLetter(c) || c == '_') return readWord(sl, sc);
+        if (Character.isLetter(c)) return readWord(sl, sc);
         advance();
         return nextToken();
     }
