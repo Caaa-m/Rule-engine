@@ -18,7 +18,7 @@ A complete implementation of a rule-based language interpreter built from scratc
 |-----------|---------|
 | Operating System | Windows 10 / Ubuntu 22.04 |
 | Programming Language | Java |
-| Java Version | JDK 17 (or any JDK ≥ 11) |
+| Java Version | JDK 21 (or any JDK ≥ 21) |
 | Build Tool | Manual (`javac`) — no build framework required |
 | IDE (optional) | Eclipse / IntelliJ IDEA / VS Code |
 
