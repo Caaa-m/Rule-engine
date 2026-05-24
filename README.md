@@ -6,9 +6,9 @@ A complete implementation of a rule-based language interpreter built from scratc
 
 ## Group Members
 
-<!-- Replace with your actual names -->
-- [Full Name 1]
-- [Full Name 2]
+- [ALejandro Osorio Restrepo]
+- [Maria Camila Rodriguez Gonzales]
+- [Daniel Osorio Velez]
 
 ---
 
