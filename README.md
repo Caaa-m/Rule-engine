@@ -1,2 +1,260 @@
-# Rule-engine
-A rule engine implemented with a custom lexer and parser, designed to process a domain-specific language (DSL) for defining and executing logical rules. The system transforms textual rules into executable structures, enabling automated decision-making based on conditional logic.
+# Rule-Based Language Engine
+
+A complete implementation of a rule-based language interpreter built from scratch in Java, developed as part of the *Formal Languages and Compilers* course. The system parses a domain-specific language (DSL), constructs an Abstract Syntax Tree (AST), executes rules using a fixed-point evaluation strategy, and performs static analysis to detect conflicts, redundancies, and potentially inactive rules.
+
+---
+
+## Group Members
+
+<!-- Replace with your actual names -->
+- [Full Name 1]
+- [Full Name 2]
+
+---
+
+## Environment
+
+| Component | Version |
+|-----------|---------|
+| Operating System | Windows 10 / Ubuntu 22.04 |
+| Programming Language | Java |
+| Java Version | JDK 17 (or any JDK ≥ 11) |
+| Build Tool | Manual (`javac`) — no build framework required |
+| IDE (optional) | Eclipse / IntelliJ IDEA / VS Code |
+
+---
+
+## Project Structure
+
+```
+Rule-engine/
+├── src/
+│   └── main/
+│       └── java/
+│           └── rulesystem/
+│               ├── Lexer.java              # Lexical analysis (tokenizer)
+│               ├── Parser.java             # Syntactic analysis (LL(1)-style recursive descent)
+│               ├── Main.java               # Entry point — wires all components together
+│               ├── ast/
+│               │   ├── Program.java        # Root AST node
+│               │   ├── Rule.java           # AST node for a single rule
+│               │   ├── Condition.java      # Interface for all condition types
+│               │   ├── AtomicCondition.java# Marker interface for atomic conditions
+│               │   ├── AndCondition.java   # AST node for AND conjunction
+│               │   ├── ComparisonCondition.java  # AST node for id op value
+│               │   ├── FactCondition.java  # AST node for bare fact check
+│               │   └── Action.java         # AST node for rule action
+│               ├── interpreter/
+│               │   ├── Interpreter.java    # Fixed-point rule evaluation engine
+│               │   └── State.java          # Runtime state (variables + active facts)
+│               └── analyzer/
+│                   ├── StaticAnalyzer.java      # Coordinator for all static checks
+│                   ├── ConflictDetector.java    # Detects rules sharing the same action
+│                   ├── RedundancyDetector.java  # Detects duplicate rules
+│                   └── InactiveRuleDetector.java # Detects rules that cannot fire
+├── test_case_1.txt
+├── test_case_2.txt
+├── test_case_3.txt
+├── test_case_4.txt
+├── test_case_5.txt
+├── test_case_6.txt
+├── test_case_7.txt
+├── test_case_8.txt
+├── test_case_chain.txt
+├── .classpath
+├── .project
+└── README.md
+```
+
+---
+
+## How to Compile
+
+From the project root directory, compile all Java source files into the `bin/classes` output folder:
+
+```bash
+mkdir -p bin/classes
+javac -d bin/classes $(find src -name "*.java")
+```
+
+On Windows (Command Prompt):
+
+```cmd
+mkdir bin\classes
+javac -d bin\classes src\main\java\rulesystem\*.java src\main\java\rulesystem\ast\*.java src\main\java\rulesystem\interpreter\*.java src\main\java\rulesystem\analyzer\*.java
+```
+
+---
+
+## How to Run
+
+The program accepts input either from a file or from standard input (stdin).
+
+**From a file:**
+
+```bash
+java -cp bin/classes rulesystem.Main <input_file.txt>
+```
+
+**From stdin:**
+
+```bash
+java -cp bin/classes rulesystem.Main < input_file.txt
+```
+
+**Examples:**
+
+```bash
+java -cp bin/classes rulesystem.Main test_case_1.txt
+java -cp bin/classes rulesystem.Main test_case_2.txt
+java -cp bin/classes rulesystem.Main test_case_6.txt
+java -cp bin/classes rulesystem.Main test_case_chain.txt
+```
+
+---
+
+## Input Format
+
+An input file contains two sections: rules and an initial state. They can appear in any order as long as rule lines start with `rule` or `if`, and state lines are assignments (`id = value`) or bare facts (`id`).
+
+**Example:**
+
+```
+rule r1:
+if temp > 30 then alert
+
+rule r2:
+if alert then fan_on
+
+temp = 35
+```
+
+**Grammar (as specified):**
+
+```
+Program   → RuleList
+RuleList  → Rule RuleList | ε
+Rule      → rule id : if Cond then Action
+Cond      → Atom AND Cond | Atom
+Atom      → id RelOp value | id
+RelOp     → > | < | =
+Action    → id
+```
+
+**Identifier rules:** lowercase letters, digits, and underscores; must start with a letter.
+**Keywords** (`rule`, `if`, `then`, `AND`) are case-sensitive.
+
+---
+
+## Output Format
+
+**Execution output** — facts activated by rules, one per line, in lexicographic order:
+
+```
+alert
+fan_on
+```
+
+If no facts are activated:
+
+```
+(no output)
+```
+
+**Static analysis output** — printed after execution results:
+
+| Type | Format |
+|------|--------|
+| Conflict | `Action <id> generated by r1, r2, ...` |
+| Redundancy | `Redundant rules: r1, r2` |
+| Potentially inactive | `Potentially inactive rule: <id>` |
+
+---
+
+## Test Cases and Expected Outputs
+
+### Case 1 — Basic comparison rule
+```
+Input:  rule r1: if temp > 30 then alert | temp = 35
+Output: alert
+```
+
+### Case 2 — Chained rules
+```
+Input:  r1: temp>30->alert, r2: alert->fan_on | temp=35
+Output: alert
+        fan_on
+```
+
+### Case 3 — Condition not met
+```
+Input:  r1: temp>30->alert | temp=20
+Output: (no output)
+```
+
+### Case 4 — AND condition
+```
+Input:  r1: temp>30 AND humidity<50 -> alert | temp=35, humidity=40
+Output: alert
+```
+
+### Case 5 — No rules
+```
+Input:  (no rules) | temp=35, humidity=60
+Output: (no output)
+```
+
+### Case 6 — Conflict detection
+```
+Output: fan_on
+        Action fan_on generated by r1, r2
+```
+
+### Case 7 — Redundancy detection
+```
+Output: (no output)
+        Redundant rules: r1, r2
+```
+
+### Case 8 — Potentially inactive rule
+```
+Output: (no output)
+        Potentially inactive rule: r3
+```
+
+### Case Chain — Multi-hop fact propagation
+```
+Input:  r1:a->b, r2:b->c, r3:c->d, r4:d->e | fact: a
+Output: b
+        c
+        d
+        e
+```
+
+---
+
+## Design
+
+The system follows a classic compiler pipeline architecture:
+
+```
+Source text
+    ↓
+  Lexer        →  token stream
+    ↓
+  Parser       →  Abstract Syntax Tree (AST)
+    ↓
+  Interpreter  →  execution output (fixed-point evaluation)
+    ↓
+  Analyzer     →  static analysis messages
+```
+
+Each component is fully independent. The AST is immutable during execution. No external libraries or parser generators are used — all components are implemented from scratch.
+
+---
+
+## Notes
+
+- No parser generators (ANTLR, JavaCC, etc.) were used. The parser is a hand-written recursive-descent parser.
+- The grammar was transformed to be right-recursive on `AND` conjunctions to avoid ambiguity in the recursive-descent strategy (LL-style).
+- Static analysis is conservative: the inactive rule detector uses a reachability approximation over the set of all possible facts, not a full theorem prover.
